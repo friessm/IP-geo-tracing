@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
+from flask_restful import Resource, Api
 from requests import get
 from scapy.all import sr1, IP, ICMP
 from forms import HostNameForm
@@ -6,16 +7,21 @@ import geojson
 import json
 import os
 
+# Create Flask app instance and RESTful api
 app = Flask(__name__)
-
-# TODO: Rename file to 'app.py' and html file to 'index.html'
+api = Api(app)
 
 app.config.from_envvar('APP_CONFIG_FILE', silent=True)
 app.secret_key = app.config['SECRET_KEY'] # TODO: Do I need a secret key? If not, get rid of 'session' in import
 MAPBOX_ACCESS_KEY = app.config['MAPBOX_ACCESS_KEY']
 IPINFO_APITOKEN = app.config['IPINFO_APITOKEN']
 
-# print(app.config['SECRET_KEY'])
+@app.route('/')
+def index():
+    return render_template(
+        'mapbox.html',
+        ACCESS_KEY=MAPBOX_ACCESS_KEY
+    )
 
 def get_ip_data(ip_addr):
     # TODO: get full API response: https://ipinfo.io/developers/responses#full-response
@@ -86,7 +92,6 @@ def trace_route(hostname):
         # Checking for the ICMP echo-reply.
         if resp.type == 0: 
             # Dst reached
-            print('Dst reached: {}'.format(resp.src))
 
             # Create LineString feature when all lng and lat values are collected and stored in a list
             line_string_feature = to_geojson_line_string(geo_coords_list)
@@ -94,24 +99,21 @@ def trace_route(hostname):
             return geojson.FeatureCollection(feature_list)
           
 
-@app.route('/')
-def index():
-    return render_template(
-        'mapbox.html',
-        ACCESS_KEY=MAPBOX_ACCESS_KEY
-    )
+class IpMetaData(Resource):
+    def post(self):
+        # TODO: Use POST or GET request?
+        # TODO: Validate that this is a proper post request
+        # TODO: Handle in case post request is empty
+        # TODO: Add proper input validation
+        form = HostNameForm(request.form)
 
-# TODO: Rewrite this as an REST API
-@app.route('/hostname', methods=['POST'])
-def data():
+        if form.validate():
+            hostname = str(request.form['hostname'])
+            ip_data = trace_route(hostname)
+            return jsonify(ip_data), 200
 
-    # TODO: Add proper input validation
-    form = HostNameForm(request.form)
-    if form.validate():
-        hostname = str(request.form['hostname'])
-        ip_data = trace_route(hostname)
-        return jsonify(ip_data)
+        # TODO: Handle this case better
+        print('failed')
+        return '', 300 # TODO: Double check the http code
 
-    # TODO: Handle this case better
-    print('failed')
-    return ''
+api.add_resource(IpMetaData, '/hostname')
