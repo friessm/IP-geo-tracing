@@ -1,5 +1,9 @@
 from wtforms import Form, StringField, validators
 
-class HostNameForm(Form):
+class DomainNameForm(Form):
 
-    hostname = StringField('hostname', [validators.Length(min=5, max=25)])
+    # Check if domain name is valid
+    domain_name = StringField('domainName', [
+            validators.Length(max=253),
+            validators.Regexp(r'(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63}$)')
+        ])

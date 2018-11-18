@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8' />
+        <title></title>
+        
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script src="{{ url_for('static', filename='javascript.js') }}"></script>
+        <script src='https://api.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.js'></script>
+        
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+        <link href='https://api.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.css' rel='stylesheet' />
+
+    </head>
+    <body>
+              
+        <div id='map'></div>
+        
+        <div class="map-overlay">
+            <form id="domainNameForm" class="search-form">
+                <input type="text" id="domainName" placeholder="Domain name">
+                <input type="submit" id="submitBtn" value="Submit">
+            </form>
+        </div>
+
+        <div id="error"></div>
+        
+        <script>
+            mapboxgl.accessToken = '{{ ACCESS_KEY|safe }}';
+            var map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v10',
+                center: [31.4606, 20.7927],
+                zoom: 1.5
+            });
+            
+        </script>
+
+    </body>
+</html>
